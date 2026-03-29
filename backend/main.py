@@ -12,8 +12,8 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -30,7 +30,6 @@ def root():
 @app.get("/product/{barcode}")
 async def get_product(barcode: str):
     url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
-
     async with httpx.AsyncClient() as http:
         res = await http.get(url, timeout=30.0)
         data = res.json()
@@ -89,30 +88,12 @@ Keep it conversational, clear and under 80 words total. No markdown, just plain 
         max_tokens=200,
     )
 
-    insight = response.choices[0].message.content
-    return {"insight": insight}
+    return {"insight": response.choices[0].message.content}
 
 
 @app.post("/scan-history")
 async def save_scan(payload: dict):
     try:
-        supabase.table("scans").insert({
-            "barcode": payload.get("barcode"),
-            "name": payload.get("name"),
-            "brand": payload.get("brand"),
-            "image": payload.get("image"),
-            "nutriscore": payload.get("nutriscore"),
-            "health_score": payload.get("health_score"),
-        }).execute()
-        return {"status": "saved"}
-    except Exception as e:
-        return {"status": "error", "detail": str(e)}
-
-
-@app.post("/scan-history")
-async def save_scan(payload: dict):
-    try:
-        # Check if same barcode was already saved in last 10 records
         existing = supabase.table("scans")\
             .select("barcode")\
             .eq("barcode", payload.get("barcode"))\
@@ -120,7 +101,6 @@ async def save_scan(payload: dict):
             .limit(1)\
             .execute()
 
-        # Only save if not already the most recent scan
         if not existing.data:
             supabase.table("scans").insert({
                 "barcode": payload.get("barcode"),
@@ -133,3 +113,16 @@ async def save_scan(payload: dict):
         return {"status": "saved"}
     except Exception as e:
         return {"status": "error", "detail": str(e)}
+
+
+@app.get("/scan-history")
+async def get_scan_history():
+    try:
+        result = supabase.table("scans")\
+            .select("*")\
+            .order("scanned_at", desc=True)\
+            .limit(10)\
+            .execute()
+        return {"scans": result.data}
+    except Exception as e:
+        return {"scans": [], "error": str(e)}
