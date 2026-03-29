@@ -65,7 +65,7 @@ function AIInsightCard({ product }: { product: any }) {
   const fetchInsight = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/ai-insight", {
+      const res = await fetch("https://scansnap-backend.onrender.com/ai-insight", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ product }),

@@ -34,7 +34,7 @@ export default function Home() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("http://localhost:8000/scan-history");
+      const res = await fetch("https://scansnap-backend.onrender.com/scan-history");
       const data = await res.json();
       setHistory(data.scans || []);
     } catch {}
@@ -49,12 +49,12 @@ export default function Home() {
     setShowCompare(false);
     setCompareProduct(null);
     try {
-      const res = await fetch(`http://localhost:8000/product/${barcode}`);
+      const res = await fetch(`https://scansnap-backend.onrender.com/product/${barcode}`);
       if (!res.ok) throw new Error();
       const data = await res.json();
       setProduct(data);
       const healthScore = calculateHealthScore(data.nutrition, data.nutriscore);
-      await fetch("http://localhost:8000/scan-history", {
+      await fetch("https://scansnap-backend.onrender.com/scan-history", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -279,7 +279,7 @@ export default function Home() {
                 onClick={async () => {
                   if (!compareBarcode.trim()) return;
                   try {
-                    const res = await fetch(`http://localhost:8000/product/${compareBarcode.trim()}`);
+                    const res = await fetch(`https://scansnap-backend.onrender.com/product/${compareBarcode.trim()}`);
                     if (!res.ok) throw new Error();
                     const data = await res.json();
                     setCompareProduct(data);
